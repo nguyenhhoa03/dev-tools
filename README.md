@@ -26,14 +26,6 @@ Each tool can be accessed directly at: `https://scriptum.free.nf/<tool-name>`
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! Here's how you can help:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-tool`)
-3. **Commit** your changes (`git commit -m 'Add amazing tool'`)
-4. **Push** to the branch (`git push origin feature/amazing-tool`)
-5. **Open** a Pull Request
-
 ### Development Guidelines
 
 - Write clean, well-documented code
