@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Simple Markdown Editor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet"/>
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2d2d2d;
+            border-bottom: 1px solid #444;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .header h1 {
+            color: #fff;
+            font-size: 18px;
+            margin-right: 30px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: #3a3a3a;
+            border: 1px solid #555;
+            color: #e0e0e0;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: #4a4a4a;
+            border-color: #666;
+        }
+
+        .btn:active {
+            background: #555;
+        }
+
+        .btn:disabled {
+            background: #2a2a2a;
+            border-color: #333;
+            color: #777;
+            cursor: not-allowed;
+        }
+
+        .btn:disabled:hover {
+            background: #2a2a2a;
+            border-color: #333;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .divider {
+            width: 1px;
+            height: 20px;
+            background: #555;
+            margin: 0 5px;
+        }
+
+        .main-container {
+            display: flex;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+        }
+
+        .editor-container {
+            flex: 1;
+            min-width: 300px;
+            max-width: 50%;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #444;
+        }
+
+        .editor {
+            flex: 1;
+            background: #1e1e1e;
+            color: #e0e0e0;
+            border: none;
+            padding: 20px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            tab-size: 4;
+        }
+
+        .editor::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .editor::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+
+        .editor::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+
+        .preview-container {
+            flex: 1;
+            min-width: 300px;
+            max-width: 50%;
+            display: flex;
+            flex-direction: column;
+            background: #222;
+        }
+
+        .preview {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #1a1a1a;
+            overflow-x: auto;
+            max-width: 100%;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .preview::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .preview::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+
+        .preview::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+
+        /* Markdown preview styles */
+        .preview h1, .preview h2, .preview h3, .preview h4, .preview h5, .preview h6 {
+            color: #fff;
+            margin: 20px 0 10px 0;
+            line-height: 1.3;
+        }
+
+        .preview h1 { font-size: 2em; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        .preview h2 { font-size: 1.6em; }
+        .preview h3 { font-size: 1.4em; }
+        .preview h4 { font-size: 1.2em; }
+
+        .preview p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .preview code {
+            background: #2d2d2d;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            color: #ff6b6b;
+        }
+
+        .preview pre {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid #444;
+        }
+
+        .preview pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .preview blockquote {
+            border-left: 4px solid #555;
+            padding-left: 15px;
+            margin: 15px 0;
+            color: #ccc;
+            font-style: italic;
+        }
+
+        .preview ul, .preview ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+
+        .preview li {
+            margin: 5px 0;
+        }
+
+        .preview table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .preview th, .preview td {
+            border: 1px solid #444;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .preview th {
+            background: #2d2d2d;
+            font-weight: bold;
+        }
+
+        .preview img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .preview a {
+            color: #66b3ff;
+            text-decoration: none;
+        }
+
+        .preview a:hover {
+            text-decoration: underline;
+        }
+
+        .status-bar {
+            background: #2d2d2d;
+            border-top: 1px solid #444;
+            padding: 5px 20px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: none;
+        }
+
+        .modal.show {
+            display: block;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            opacity: 0;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .modal.show {
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: #2d2d2d;
+            margin: 10% auto;
+            padding: 25px;
+            border-radius: 8px;
+            width: 450px;
+            max-width: 90%;
+            transform: translateY(-20px);
+            transition: transform 0.2s ease;
+            border: 1px solid #444;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal h3 {
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 8px;
+            background: #1e1e1e;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #e0e0e0;
+            margin-bottom: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .modal input:disabled {
+            background: #2a2a2a;
+            border-color: #333;
+            color: #777;
+            cursor: not-allowed;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .hidden-char {
+            color: #666;
+            background: #333;
+            padding: 1px 3px;
+            border-radius: 2px;
+            font-size: 10px;
+            user-select: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .editor-container {
+                border-right: none;
+                border-bottom: 1px solid #444;
+            }
+            
+            .header {
+                padding: 8px 15px;
+            }
+            
+            .toolbar {
+                gap: 5px;
+            }
+            
+            .btn {
+                padding: 5px 8px;
+                font-size: 12px;
+            }
+        }
+
+        /* Bổ sung chống vỡ layout */
+        .preview {
+            max-width: 100%;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .preview img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .preview table {
+            display: block;
+            overflow-x: auto;
+            max-width: 100%;
+            word-break: break-word;
+        }
+
+    </style>
+</head>
+<body>
+<div class="header">
+<h1>Simple Markdown Editor</h1>
+<div class="toolbar">
+<button class="btn" onclick="newFile()">📄 New</button>
+<button class="btn" onclick="document.getElementById('fileInput').click()">📁 Open</button>
+<button class="btn" onclick="saveFile()">💾 Save</button>
+<button class="btn" onclick="exportFile()">📤 Export</button>
+<div class="divider"></div>
+<button class="btn" onclick="insertFormatting('**', '**', 'Bold text')">B</button>
+<button class="btn" onclick="insertFormatting('*', '*', 'Italic text')">I</button>
+<button class="btn" onclick="insertFormatting('~~', '~~', 'Strikethrough text')">S̶</button>
+<button class="btn" onclick="insertFormatting('`', '`', 'inline code')">‹›</button>
+<div class="divider"></div>
+<button class="btn" onclick="insertHeading(1)"># H1</button>
+<button class="btn" onclick="insertHeading(2)">## H2</button>
+<button class="btn" onclick="insertHeading(3)">### H3</button>
+<div class="divider"></div>
+<button class="btn" onclick="insertList('- ')">• List</button>
+<button class="btn" onclick="insertList('1. ')">1. List</button>
+<button class="btn" onclick="insertQuote()">❝ Quote</button>
+<div class="divider"></div>
+<button class="btn" onclick="insertCodeBlock()">{ } Code</button>
+<button class="btn" onclick="insertTable()">⊞ Table</button>
+<button class="btn" onclick="showImageModal()">🖼️ Image</button>
+<button class="btn" onclick="insertMath()">∑ Math</button>
+</div>
+</div>
+<div class="main-container">
+<div class="editor-container">
+<textarea class="editor" id="editor" placeholder="Start writing your markdown ...."></textarea>
+<div class="status-bar">
+<span id="status">Ready</span> | 
+                <span id="wordCount">0 word</span> | 
+                <span id="charCount">0 character</span>
+</div>
+</div>
+<div class="preview-container">
+<div class="preview" id="preview"></div>
+</div>
+</div>
+<input accept=".md,.txt" class="file-input" id="fileInput" onchange="loadFile(event)" type="file"/>
+<!-- Image Modal -->
+<div class="modal" id="imageModal">
+<div class="modal-content">
+<h3>Insert</h3>
+<input id="imageUrl" placeholder="Image URL" type="text"/>
+<input id="imageAlt" placeholder="Alt text (option)" type="text"/>
+<input accept="image/*" id="imageFile" onchange="handleImageFile(event)" type="file"/>
+<div class="modal-buttons">
+<button class="btn" onclick="closeImageModal()">Cancel</button>
+<button class="btn" onclick="insertImage()">Insert</button>
+</div>
+</div>
+</div>
+<script>
+        let currentFileName = 'untitled.md';
+        let savedContent = '';
+        const editor = document.getElementById('editor');
+        const preview = document.getElementById('preview');
+
+        // Configure marked with math support
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: false, // Don't convert single line breaks to <br>
+            gfm: true
+        });
+
+        // Custom renderer for math
+        const renderer = new marked.Renderer();
+        const originalParagraph = renderer.paragraph;
+        
+        renderer.paragraph = function(text) {
+            // Handle display math $$...$$
+            text = text.replace(/\$\$([\s\S]*?)\$\$/g, function(match, math) {
+                try {
+                    return '<div class="math-display">' + katex.renderToString(math, { displayMode: true, throwOnError: false }) + '</div>';
+                } catch (e) {
+                    return match;
+                }
+            });
+            
+            // Handle inline math $...$
+            text = text.replace(/\$([^$\n]+?)\$/g, function(match, math) {
+                try {
+                    return katex.renderToString(math, { displayMode: false, throwOnError: false });
+                } catch (e) {
+                    return match;
+                }
+            });
+            
+            return originalParagraph.call(this, text);
+        };
+
+        marked.use({ renderer });
+
+        // Auto-save to localStorage
+        function autoSave() {
+            const content = editor.value;
+            let saveContent = content;
+            
+            // Convert hidden images back to base64 for saving
+            if (window.imageStore) {
+                for (const [hiddenId, base64Data] of Object.entries(window.imageStore)) {
+                    const regex = new RegExp(`\\(${hiddenId}◊\\)`, 'g');
+                    saveContent = saveContent.replace(regex, `(${base64Data})`);
+                }
+            }
+            
+            const fileData = {
+                name: currentFileName,
+                content: saveContent,
+                timestamp: Date.now()
+            };
+            const files = JSON.parse(localStorage.getItem('markdownFiles') || '[]');
+            const existingIndex = files.findIndex(f => f.name === currentFileName);
+            
+            if (existingIndex >= 0) {
+                files[existingIndex] = fileData;
+            } else {
+                files.push(fileData);
+            }
+            
+            localStorage.setItem('markdownFiles', JSON.stringify(files));
+            savedContent = content;
+            updateStatus('Auto-saved');
+        }
+
+        // Update preview and stats
+        function updatePreview() {
+            const content = editor.value;
+            const html = marked.parse(content);
+            preview.innerHTML = html;
+            
+            // Update stats
+            const words = content.trim() ? content.trim().split(/\s+/).length : 0;
+            const chars = content.length;
+            document.getElementById('wordCount').textContent = `${words} words`;
+            document.getElementById('charCount').textContent = `${chars} characters`;
+            
+            if (content !== savedContent) {
+                updateStatus('Not saved');
+            }
+        }
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        // File operations
+        function newFile() {
+            if (editor.value !== savedContent && editor.value.trim() !== '') {
+                if (!confirm('Do you want to create a new file? Unsaved content will be lost.')) {
+                    return;
+                }
+            }
+            editor.value = '';
+            currentFileName = 'untitled.md';
+            savedContent = '';
+            updatePreview();
+            updateStatus('New file has been created');
+        }
+
+        function loadFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let content = e.target.result;
+                
+                // Convert base64 images to hidden format
+                content = convertBase64ToHidden(content);
+                
+                editor.value = content;
+                currentFileName = file.name;
+                savedContent = content;
+                updatePreview();
+                updateStatus(`Opened ${file.name}`);
+            };
+            reader.readAsText(file);
+        }
+
+        function convertBase64ToHidden(content) {
+            // Find all base64 images and convert them to hidden format
+            const base64ImageRegex = /!\[([^\]]*)\]\(data:image\/[^;]+;base64,[^)]+\)/g;
+            
+            if (!window.imageStore) window.imageStore = {};
+            if (!window.base64ToHiddenMap) window.base64ToHiddenMap = {};
+            
+            return content.replace(base64ImageRegex, function(match, altText) {
+                // Extract the base64 data
+                const urlMatch = match.match(/!\[[^\]]*\]\((data:image\/[^;]+;base64,[^)]+)\)/);
+                if (urlMatch) {
+                    const base64Data = urlMatch[1];
+                    
+                    // Check if we already have a hidden ID for this base64 data
+                    let hiddenId = window.base64ToHiddenMap[base64Data];
+                    
+                    if (!hiddenId) {
+                        // Create new hidden ID only if not exists
+                        hiddenId = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                        window.base64ToHiddenMap[base64Data] = hiddenId;
+                        window.imageStore[hiddenId] = base64Data;
+                    }
+                    
+                    return `![${altText}](${hiddenId}◊)`;
+                }
+                return match;
+            });
+        }
+
+        function saveFile() {
+            autoSave();
+            updateStatus(`Saved ${currentFileName}`);
+        }
+
+        function exportFile() {
+            let content = editor.value;
+            
+            // Replace hidden base64 images with actual base64 data
+            if (window.imageStore) {
+                for (const [hiddenId, base64Data] of Object.entries(window.imageStore)) {
+                    const regex = new RegExp(`\\(${hiddenId}◊\\)`, 'g');
+                    content = content.replace(regex, `(${base64Data})`);
+                }
+            }
+            
+            const blob = new Blob([content], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentFileName;
+            a.click();
+            URL.revokeObjectURL(url);
+            updateStatus(`Exported ${currentFileName}`);
+        }
+
+        // Text formatting functions
+        function getSelectedLineContent(textarea) {
+            const start = textarea.selectionStart;
+            const text = textarea.value;
+            
+            // Find line boundaries
+            let lineStart = start;
+            while (lineStart > 0 && text[lineStart - 1] !== '\n') {
+                lineStart--;
+            }
+            
+            let lineEnd = start;
+            while (lineEnd < text.length && text[lineEnd] !== '\n') {
+                lineEnd++;
+            }
+            
+            return {
+                lineStart,
+                lineEnd,
+                lineContent: text.substring(lineStart, lineEnd),
+                hasSelection: textarea.selectionStart !== textarea.selectionEnd
+            };
+        }
+
+        function isTextWrappedWith(text, start, end, prefix, suffix) {
+            const beforeStart = start - prefix.length;
+            const afterEnd = end + suffix.length;
+            
+            if (beforeStart < 0 || afterEnd > text.length) return false;
+            
+            return text.substring(beforeStart, start) === prefix && 
+                   text.substring(end, afterEnd) === suffix;
+        }
+
+        function findWrappingBounds(text, cursorPos, prefix, suffix) {
+            // Look for prefix before cursor
+            for (let i = cursorPos - 1; i >= 0; i--) {
+                if (text.substring(i, i + prefix.length) === prefix) {
+                    // Check if this prefix has a matching suffix after cursor
+                    for (let j = cursorPos; j <= text.length - suffix.length; j++) {
+                        if (text.substring(j, j + suffix.length) === suffix) {
+                            return { prefixStart: i, suffixStart: j, suffixEnd: j + suffix.length };
+                        }
+                    }
+                }
+                // Stop if we hit a newline to avoid cross-line matching
+                if (text[i] === '\n') break;
+            }
+            return null;
+        }
+
+        function insertFormatting(prefix, suffix, defaultText) {
+            const textarea = editor;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const selectedText = text.substring(start, end);
+            
+            let newText;
+            let newCursorPos;
+            
+            // Check if cursor is inside wrapped text (for toggle functionality)
+            const wrappingBounds = findWrappingBounds(text, start, prefix, suffix);
+            
+            if (wrappingBounds) {
+                // Remove the wrapping
+                newText = text.substring(0, wrappingBounds.prefixStart) + 
+                         text.substring(wrappingBounds.prefixStart + prefix.length, wrappingBounds.suffixStart) + 
+                         text.substring(wrappingBounds.suffixEnd);
+                newCursorPos = start - prefix.length;
+            } else if (selectedText) {
+                // Check if selected text is already wrapped
+                if (isTextWrappedWith(text, start, end, prefix, suffix)) {
+                    // Remove wrapping
+                    newText = text.substring(0, start - prefix.length) + selectedText + text.substring(end + suffix.length);
+                    newCursorPos = start - prefix.length;
+                } else {
+                    // Format selected text
+                    newText = text.substring(0, start) + prefix + selectedText + suffix + text.substring(end);
+                    newCursorPos = start + prefix.length + selectedText.length + suffix.length;
+                }
+            } else {
+                // No selection, check if we're in a line with text
+                const lineInfo = getSelectedLineContent(textarea);
+                
+                if (lineInfo.lineContent.trim()) {
+                    // Line has text, wrap the entire line
+                    newText = text.substring(0, lineInfo.lineStart) + prefix + lineInfo.lineContent + suffix + text.substring(lineInfo.lineEnd);
+                    newCursorPos = lineInfo.lineEnd + prefix.length + suffix.length;
+                } else {
+                    // Empty line or no text, insert default
+                    newText = text.substring(0, start) + prefix + defaultText + suffix + text.substring(end);
+                    newCursorPos = start + prefix.length + defaultText.length;
+                }
+            }
+            
+            textarea.value = newText;
+            textarea.focus();
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+            updatePreview();
+        }
+
+        function insertHeading(level) {
+            const textarea = editor;
+            const start = textarea.selectionStart;
+            const text = textarea.value;
+            const lineInfo = getSelectedLineContent(textarea);
+            
+            const prefix = '#'.repeat(level) + ' ';
+            const defaultText = `Heading ${level}`;
+            
+            let newText;
+            let newCursorPos;
+            
+            if (lineInfo.lineContent.trim()) {
+                // Remove existing heading if present
+                const cleanLine = lineInfo.lineContent.replace(/^#+\s*/, '');
+                newText = text.substring(0, lineInfo.lineStart) + prefix + cleanLine + text.substring(lineInfo.lineEnd);
+                newCursorPos = lineInfo.lineStart + prefix.length + cleanLine.length;
+            } else {
+                newText = text.substring(0, start) + prefix + defaultText + text.substring(start);
+                newCursorPos = start + prefix.length + defaultText.length;
+            }
+            
+            textarea.value = newText;
+            textarea.focus();
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+            updatePreview();
+        }
+
+        function insertList(prefix) {
+            const textarea = editor;
+            const start = textarea.selectionStart;
+            const text = textarea.value;
+            const lineInfo = getSelectedLineContent(textarea);
+            
+            let newText;
+            let newCursorPos;
+            
+            if (lineInfo.lineContent.trim()) {
+                // Add list marker to current line
+                newText = text.substring(0, lineInfo.lineStart) + prefix + lineInfo.lineContent + text.substring(lineInfo.lineEnd);
+                newCursorPos = lineInfo.lineEnd + prefix.length;
+            } else {
+                // Insert list item
+                newText = text.substring(0, start) + prefix + 'List item' + text.substring(start);
+                newCursorPos = start + prefix.length + 9;
+            }
+            
+            textarea.value = newText;
+            textarea.focus();
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+            updatePreview();
+        }
+
+        function insertQuote() {
+            const textarea = editor;
+            const start = textarea.selectionStart;
+            const text = textarea.value;
+            const lineInfo = getSelectedLineContent(textarea);
+            
+            let newText;
+            let newCursorPos;
+            
+            if (lineInfo.lineContent.trim()) {
+                newText = text.substring(0, lineInfo.lineStart) + '> ' + lineInfo.lineContent + text.substring(lineInfo.lineEnd);
+                newCursorPos = lineInfo.lineEnd + 2;
+            } else {
+                newText = text.substring(0, start) + '> Quote text' + text.substring(start);
+                newCursorPos = start + 12;
+            }
+            
+            textarea.value = newText;
+            textarea.focus();
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+            updatePreview();
+        }
+
+        function insertCodeBlock() {
+            const textarea = editor;
+            const start = textarea.selectionStart;
+            const text = textarea.value;
+            const selectedText = text.substring(textarea.selectionStart, textarea.selectionEnd);
+            
+            let insertText;
+            let cursorPos;
+            
+            if (selectedText) {
+                insertText = '```\n' + selectedText + '\n```';
+                cursorPos = start + insertText.length;
+            } else {
+                insertText = '```javascript\ncode here\n```';
+                cursorPos = start + 14; // Position after 'javascript\n'
+            }
+            
+            const newText = text.substring(0, start) + insertText + text.substring(textarea.selectionEnd);
+            textarea.value = newText;
+            textarea.focus();
+            textarea.setSelectionRange(cursorPos, cursorPos);
+            updatePreview();
+        }
+
+        function insertTable() {
+            const tableText = '| Header 1 | Header 2 | Header 3 |\n|----------|----------|----------|\n| Cell 1   | Cell 2   | Cell 3   |\n| Cell 4   | Cell 5   | Cell 6   |';
+            const textarea = editor;
+            const start = textarea.selectionStart;
+            const text = textarea.value;
+            
+            const newText = text.substring(0, start) + tableText + text.substring(start);
+            textarea.value = newText;
+            textarea.focus();
+            textarea.setSelectionRange(start + 11, start + 19); // Select "Header 1"
+            updatePreview();
+        }
+
+        function insertMath() {
+            const textarea = editor;
+            const start = textarea.selectionStart;
+            const text = textarea.value;
+            
+            const mathText = '$$\nE = mc^2\n$$';
+            const newText = text.substring(0, start) + mathText + text.substring(start);
+            textarea.value = newText;
+            textarea.focus();
+            textarea.setSelectionRange(start + 3, start + 10); // Select the equation
+            updatePreview();
+        }
+
+        // Image handling
+        function showImageModal() {
+            const modal = document.getElementById('imageModal');
+            modal.style.display = 'block';
+            // Force reflow
+            modal.offsetHeight;
+            modal.classList.add('show');
+            
+            setTimeout(() => {
+                document.getElementById('imageUrl').focus();
+            }, 100);
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            const imageUrlInput = document.getElementById('imageUrl');
+            const insertBtn = document.querySelector('#imageModal .modal-buttons .btn:last-child');
+            
+            modal.classList.remove('show');
+            
+            setTimeout(() => {
+                modal.style.display = 'none';
+                
+                // Reset form state
+                imageUrlInput.value = '';
+                imageUrlInput.disabled = false;
+                document.getElementById('imageAlt').value = '';
+                document.getElementById('imageFile').value = '';
+                
+                // Reset button state
+                insertBtn.disabled = false;
+                insertBtn.textContent = 'Insert';
+            }, 200);
+        }
+
+        function handleImageFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const imageUrlInput = document.getElementById('imageUrl');
+            const insertBtn = document.querySelector('#imageModal .modal-buttons .btn:last-child');
+            
+            // Show loading state
+            imageUrlInput.value = 'Loading image ....';
+            imageUrlInput.disabled = true;
+            insertBtn.disabled = true;
+            insertBtn.textContent = 'Loading ....';
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Reset UI state
+                imageUrlInput.disabled = false;
+                insertBtn.disabled = false;
+                insertBtn.textContent = 'Insert';
+                
+                // Set the base64 result
+                window._tempImageBase64 = e.target.result;
+                imageUrlInput.value = 'Image loaded (click Insert)';
+            };
+            
+            reader.onerror = function() {
+                // Handle error state
+                imageUrlInput.disabled = false;
+                insertBtn.disabled = false;
+                insertBtn.textContent = 'Insert';
+                imageUrlInput.value = '';
+                alert('Error reading image file');
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
+        function insertImage() {
+            let url = document.getElementById('imageUrl').value.trim();
+            if (url === 'Image loaded (click Insert)' && window._tempImageBase64) {
+                url = window._tempImageBase64;
+            }
+            const alt = document.getElementById('imageAlt').value.trim() || 'image';
+            
+            if (!url) {
+                alert('Please enter a URL or select an image file.');
+                return;
+            }
+            
+            let imageText;
+            if (url.startsWith('data:')) {
+                // Base64 image - check for existing hidden ID first
+                if (!window.imageStore) window.imageStore = {};
+                if (!window.base64ToHiddenMap) window.base64ToHiddenMap = {};
+                
+                let hiddenId = window.base64ToHiddenMap[url];
+                
+                if (!hiddenId) {
+                    // Create new hidden ID only if not exists
+                    hiddenId = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    window.base64ToHiddenMap[url] = hiddenId;
+                }
+                
+                window.imageStore[hiddenId] = url;
+                imageText = `![${alt}](${hiddenId}◊)`;
+            } else {
+                imageText = `![${alt}](${url})`;
+            }
+            
+            const textarea = editor;
+            const start = textarea.selectionStart;
+            const text = textarea.value;
+            
+            const newText = text.substring(0, start) + imageText + text.substring(start);
+            textarea.value = newText;
+            textarea.focus();
+            textarea.setSelectionRange(start + imageText.length, start + imageText.length);
+            
+            closeImageModal();
+            updatePreview();
+        }
+
+        // Custom image renderer for base64 hidden images
+        const originalImage = renderer.image;
+        renderer.image = function(href, title, text) {
+            if (href.endsWith('◊') && window.imageStore) {
+                const hiddenId = href.slice(0, -1);
+                if (window.imageStore[hiddenId]) {
+                    href = window.imageStore[hiddenId];
+                }
+            }
+            return originalImage.call(this, href, title, text);
+        };
+
+        // Handle special backspace for hidden base64 images
+        editor.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace') {
+                const textarea = e.target;
+                const start = textarea.selectionStart;
+                const text = textarea.value;
+                
+                // Check if we're about to delete a hidden image marker
+                if (start > 0 && text[start - 1] === '◊') {
+                    // Find the start of the image syntax
+                    let imgStart = start - 1;
+                    while (imgStart > 0 && text[imgStart] !== '[') {
+                        imgStart--;
+                    }
+                    
+                    if (imgStart > 0 && text[imgStart - 1] === '!') {
+                        // This is an image, delete the entire thing
+                        e.preventDefault();
+                        
+                        // Extract the hidden ID to clean up storage
+                        const imgSyntax = text.substring(imgStart - 1, start);
+                        const match = imgSyntax.match(/!\[.*?\]\((.*?)◊\)/);
+                        if (match && window.imageStore) {
+                            delete window.imageStore[match[1]];
+                        }
+                        
+                        textarea.value = text.substring(0, imgStart - 1) + text.substring(start);
+                        textarea.setSelectionRange(imgStart - 1, imgStart - 1);
+                        updatePreview();
+                    }
+                }
+            }
+        });
+
+        // Event listeners
+        editor.addEventListener('input', updatePreview);
+        editor.addEventListener('input', () => {
+            clearTimeout(window.autoSaveTimeout);
+            window.autoSaveTimeout = setTimeout(autoSave, 2000);
+        });
+
+        // Keyboard shortcuts
+        editor.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case 's':
+                        e.preventDefault();
+                        saveFile();
+                        break;
+                    case 'n':
+                        e.preventDefault();
+                        newFile();
+                        break;
+                    case 'b':
+                        e.preventDefault();
+                        insertFormatting('**', '**', 'Bold text');
+                        break;
+                    case 'i':
+                        e.preventDefault();
+                        insertFormatting('*', '*', 'Italic text');
+                        break;
+                }
+            }
+            
+            // Tab handling
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 1;
+                updatePreview();
+            }
+        });
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('imageModal');
+            if (e.target === modal) {
+                closeImageModal();
+            }
+        });
+
+        // Initialize
+        updatePreview();
+        updateStatus('Sẵn sàng');
+
+        // Load saved content on startup
+        window.addEventListener('load', function() {
+            const files = JSON.parse(localStorage.getItem('markdownFiles') || '[]');
+            if (files.length > 0) {
+                const lastFile = files[files.length - 1];
+                let content = lastFile.content;
+                
+                // Convert base64 images to hidden format
+                content = convertBase64ToHidden(content);
+                
+                editor.value = content;
+                currentFileName = lastFile.name;
+                savedContent = content;
+                updatePreview();
+                updateStatus(`Restored ${lastFile.name}`);
+            }
+        });
+    </script>
+</body>
+</html>
