@@ -2,8 +2,7 @@
 
 ## Collection of Development Utilities
 
-Dev Tools is a comprehensive suite of web-based utilities designed to streamline your development workflow. Whether you're a seasoned developer, designer, or just getting started, our tools are here to make your life easier.
-
+Dev Tools is a comprehensive suite of web-based utilities designed to streamline your development workflow. Whether you're a seasoned developer, designer, or just getting started.
 ## ✨ Why Choose Dev Tools?
 
 ### 🚀 **Instant Access**
