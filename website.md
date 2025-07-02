@@ -4,7 +4,7 @@
 
 Dev Tools is a comprehensive suite of web-based utilities designed to streamline your development workflow. Whether you're a seasoned developer, designer, or just getting started.
 
-## 🛠️ Available Tools
+## [🛠️ Available Tools](https://raw.githubusercontent.com/nguyenhhoa03/dev-tools/refs/heads/main/List-of-tools.md)
 
 #### [markdown-editor](https://scriptum.free.nf/markdown-editor/): Simple markdown editor
 
@@ -13,6 +13,8 @@ Dev Tools is a comprehensive suite of web-based utilities designed to streamline
 #### [color-palette-generator](https://scriptum.free.nf/color-palette-generator/): Color picker tools
 
 *Our collection of tools is continuously growing. Check back regularly for new additions!. These tools may not work well on phones and small screen devices, I'll try to fix them.* 
+
+### [All tools](https://raw.githubusercontent.com/nguyenhhoa03/dev-tools/refs/heads/main/List-of-tools.md)
 
 
 ## ✨ Why Choose Dev Tools?
