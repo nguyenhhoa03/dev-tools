@@ -14,7 +14,7 @@ Dev Tools is a comprehensive suite of web-based utilities designed to streamline
 
 *Our collection of tools is continuously growing. Check back regularly for new additions!. These tools may not work well on phones and small screen devices, I'll try to fix them.* 
 
-*[More tools](https://raw.githubusercontent.com/nguyenhhoa03/dev-tools/refs/heads/main/List-of-tools.md)*
+*[More tools](https://marksite.free.nf/?url=https://raw.githubusercontent.com/nguyenhhoa03/dev-tools/refs/heads/main/List-of-tools.md)*
 
 
 ## ✨ Why Choose Dev Tools?
