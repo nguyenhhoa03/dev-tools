@@ -3,6 +3,18 @@
 ## Collection of Development Utilities
 
 Dev Tools is a comprehensive suite of web-based utilities designed to streamline your development workflow. Whether you're a seasoned developer, designer, or just getting started.
+
+## 🛠️ Available Tools
+
+### [markdown-editor](https://scriptum.free.nf/markdown-editor/): Simple markdown editor
+
+### [subtitle-editor](https://scriptum.free.nf/subtitle-editor/): Video subtitle editor
+
+### [color-palette-generator](https://scriptum.free.nf/color-palette-generator/): Color picker tools
+
+*Our collection of tools is continuously growing. Check back regularly for new additions!. These tools may not work well on phones and small screen devices, I'll try to fix them.* 
+
+
 ## ✨ Why Choose Dev Tools?
 
 ### 🚀 **Instant Access**
@@ -17,15 +29,6 @@ Built with transparency in mind. Our code is open source under GNU GPL v3, allow
 ### 🎯 **Developer-Focused**
 Created by developers, for developers. Each tool is crafted to solve real problems we encounter in our daily development work.
 
-## 🛠️ Available Tools
-
-[markdown-editor](https://scriptum.free.nf/markdown-editor/): Simple markdown editor
-
-[subtitle-editor](https://scriptum.free.nf/subtitle-editor/): Video subtitle editor
-
-[color-palette-generator](https://scriptum.free.nf/color-palette-generator/): Color picker tools
-
-*Our collection of tools is continuously growing. Check back regularly for new additions!*
 
 ## 🌟 Features
 
