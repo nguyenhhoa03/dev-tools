@@ -19,6 +19,12 @@ Created by developers, for developers. Each tool is crafted to solve real proble
 
 ## 🛠️ Available Tools
 
+[markdown-editor](https://scriptum.free.nf/markdown-editor/): Simple markdown editor
+
+[subtitle-editor](https://scriptum.free.nf/subtitle-editor/): Video subtitle editor
+
+[color-palette-generator](https://scriptum.free.nf/color-palette-generator/): Color picker tools
+
 *Our collection of tools is continuously growing. Check back regularly for new additions!*
 
 ## 🌟 Features
