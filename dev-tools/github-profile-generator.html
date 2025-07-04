@@ -141,9 +141,73 @@
             line-height: 1.8;
         }
 
-        .readme-content h1, .readme-content h2, .readme-content h3 {
+        .readme-content h1, .readme-content h2, .readme-content h3, .readme-content h4, .readme-content h5, .readme-content h6 {
             color: var(--text-primary);
-            margin: 20px 0 15px;
+            margin: 25px 0 15px;
+            font-weight: 600;
+        }
+
+        .readme-content h1 {
+            font-size: 2em;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .readme-content h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .readme-content h3 {
+            font-size: 1.3em;
+        }
+
+        .readme-content p {
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+
+        .readme-content ul, .readme-content ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        .readme-content li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .readme-content blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 20px;
+            margin: 20px 0;
+            font-style: italic;
+            color: var(--text-secondary);
+        }
+
+        .readme-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .readme-content th, .readme-content td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .readme-content th {
+            background: var(--secondary-bg);
+            font-weight: 600;
+        }
+
+        .readme-content hr {
+            border: none;
+            border-top: 2px solid var(--border-color);
+            margin: 30px 0;
+            opacity: 0.5;
         }
 
         .readme-content img {
@@ -350,12 +414,59 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
     <script>
         class GitHubProfileGenerator {
             constructor() {
                 this.params = this.parseParams();
                 this.colorScheme = {};
+                this.backgroundImageUrl = null;
+                this.setupMarked();
                 this.init();
+            }
+
+            setupMarked() {
+                // Configure marked.js options
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    headerIds: false,
+                    mangle: false,
+                    sanitize: false
+                });
+
+                // Custom renderer for images
+                const renderer = new marked.Renderer();
+                
+                // Custom image renderer
+                const originalImage = renderer.image;
+                renderer.image = (href, title, text) => {
+                    // Display all images normally with enhanced styling
+                    return `<img src="${href}" alt="${text}" ${title ? `title="${title}"` : ''} style="max-width: 100%; height: auto; border-radius: 10px; margin: 10px 0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">`;
+                };
+
+                // Custom link renderer - ensure external links open in new tab
+                renderer.link = (href, title, text) => {
+                    const titleAttr = title ? ` title="${title}"` : '';
+                    return `<a href="${href}"${titleAttr} target="_blank" rel="noopener noreferrer">${text}</a>`;
+                };
+
+                // Custom code renderer
+                renderer.code = (code, language) => {
+                    return `<pre style="background: var(--code-bg); padding: 15px; border-radius: 10px; overflow-x: auto; margin: 15px 0;"><code class="language-${language || ''}">${code}</code></pre>`;
+                };
+
+                // Custom codespan renderer
+                renderer.codespan = (code) => {
+                    return `<code style="background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', monospace;">${code}</code>`;
+                };
+
+                // Custom hr renderer
+                renderer.hr = () => {
+                    return `<hr style="border: none; border-top: 2px solid var(--border-color); margin: 30px 0; opacity: 0.5;">`;
+                };
+
+                marked.setOptions({ renderer });
             }
 
             parseParams() {
@@ -557,7 +668,16 @@
                     backgroundEl.style.backgroundImage = `url(${backgroundUrl})`;
                     if (this.params.blur) {
                         backgroundEl.classList.add('blur');
-                        overlayEl.style.background = 'rgba(0, 0, 0, 0.3)';
+                        // Check if light mode to make background brighter
+                        const isDark = this.params.mode === 'dark' || 
+                                      (this.params.mode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                        
+                        if (isDark) {
+                            overlayEl.style.background = 'rgba(0, 0, 0, 0.3)';
+                        } else {
+                            // Light mode: use white overlay with less opacity to brighten the background
+                            overlayEl.style.background = 'rgba(255, 255, 255, 0.4)';
+                        }
                     }
                 }
             }
@@ -570,7 +690,8 @@
                     profileCard.style.backdropFilter = 'blur(20px)';
                 }
 
-                const htmlContent = this.markdownToHtml(readmeContent);
+                // Parse markdown content using marked.js
+                const htmlContent = marked.parse(readmeContent);
 
                 profileCard.innerHTML = `
                     <div class="profile-header">
@@ -666,6 +787,9 @@
                         <div class="form-group">
                             <label for="color">Primary Color (HEX)</label>
                             <input type="text" id="color" name="color" placeholder="3b82f6" pattern="^#?[0-9a-fA-F]{6}$">
+                            <small style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px; display: block;">
+                                💡 You can choose color at <a href="https://scriptum.free.nf/color-palette-generator/" target="_blank" style="color: var(--primary-color);">Color Palette Generator</a>
+                            </small>
                         </div>
                         
                         <div class="form-group">
