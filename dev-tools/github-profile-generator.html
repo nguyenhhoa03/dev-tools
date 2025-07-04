@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Profile Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            z-index: -2;
+        }
+
+        .background.blur {
+            filter: blur(20px);
+            transform: scale(1.1);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .profile-card {
+            max-width: 800px;
+            width: 100%;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .profile-card.glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-card.minimal {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-card.neon {
+            background: var(--card-bg);
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 30px rgba(var(--primary-rgb), 0.3);
+        }
+
+        .profile-card.modern {
+            background: linear-gradient(135deg, var(--card-bg), var(--secondary-bg));
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-header {
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px solid var(--primary-color);
+            margin: 0 auto 20px;
+            display: block;
+            object-fit: cover;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .username {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .bio {
+            font-size: 1.1em;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 12px 24px;
+            border: 2px solid var(--primary-color);
+            border-radius: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .github-link:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .readme-content {
+            padding: 40px;
+            color: var(--text-primary);
+            line-height: 1.8;
+        }
+
+        .readme-content h1, .readme-content h2, .readme-content h3 {
+            color: var(--text-primary);
+            margin: 20px 0 15px;
+        }
+
+        .readme-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 10px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .background-image-placeholder {
+            background: var(--secondary-bg);
+            transition: all 0.3s ease;
+        }
+
+        .background-image-placeholder:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .readme-content a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .readme-content a:hover {
+            text-decoration: underline;
+        }
+
+        .readme-content code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .readme-content pre {
+            background: var(--code-bg);
+            padding: 15px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .error {
+            text-align: center;
+            padding: 60px 40px;
+            color: #e74c3c;
+        }
+
+        .error h1 {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .error p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 16px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(var(--primary-rgb), 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 40px;
+            color: var(--text-primary);
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .profile-header {
+                padding: 30px 20px;
+            }
+            
+            .readme-content {
+                padding: 30px 20px;
+            }
+            
+            .username {
+                font-size: 2em;
+            }
+            
+            .avatar {
+                width: 120px;
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background" id="background"></div>
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="container">
+        <div id="content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class GitHubProfileGenerator {
+            constructor() {
+                this.params = this.parseParams();
+                this.colorScheme = {};
+                this.init();
+            }
+
+            parseParams() {
+                const urlParams = new URLSearchParams(window.location.search);
+                
+                // Check for base64 encoded params
+                const base64Param = urlParams.get('base64');
+                if (base64Param) {
+                    try {
+                        const decoded = atob(base64Param);
+                        const decodedParams = new URLSearchParams(decoded);
+                        return {
+                            user: decodedParams.get('user'),
+                            mode: decodedParams.get('mode') || 'auto',
+                            color: decodedParams.get('color') || '3b82f6',
+                            background: decodedParams.get('background') || 'none',
+                            blur: decodedParams.get('blur') !== 'false',
+                            theme: decodedParams.get('theme') || 'glass'
+                        };
+                    } catch (e) {
+                        console.error('Invalid base64 parameter');
+                    }
+                }
+
+                return {
+                    user: urlParams.get('user'),
+                    mode: urlParams.get('mode') || 'auto',
+                    color: urlParams.get('color') || '3b82f6',
+                    background: urlParams.get('background') || 'none',
+                    blur: urlParams.get('blur') !== 'false',
+                    theme: urlParams.get('theme') || 'glass'
+                };
+            }
+
+            async init() {
+                if (!this.params.user) {
+                    this.showForm();
+                    return;
+                }
+
+                try {
+                    await this.generateProfile();
+                } catch (error) {
+                    this.showError(error.message);
+                }
+            }
+
+            generateColorScheme(hexColor) {
+                const rgb = this.hexToRgb(hexColor);
+                const hsl = this.rgbToHsl(rgb.r, rgb.g, rgb.b);
+                
+                const isDark = this.params.mode === 'dark' || 
+                              (this.params.mode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+                if (isDark) {
+                    return {
+                        primary: `hsl(${hsl.h}, ${Math.min(hsl.s + 10, 100)}%, 70%)`,
+                        secondary: `hsl(${hsl.h}, ${Math.max(hsl.s - 20, 0)}%, 60%)`,
+                        background: `hsl(${hsl.h}, ${Math.max(hsl.s - 30, 0)}%, 8%)`,
+                        cardBg: `hsl(${hsl.h}, ${Math.max(hsl.s - 25, 0)}%, 12%)`,
+                        secondaryBg: `hsl(${hsl.h}, ${Math.max(hsl.s - 20, 0)}%, 15%)`,
+                        textPrimary: `hsl(${hsl.h}, 10%, 95%)`,
+                        textSecondary: `hsl(${hsl.h}, 10%, 70%)`,
+                        borderColor: `hsl(${hsl.h}, ${Math.max(hsl.s - 30, 0)}%, 20%)`,
+                        inputBg: `hsl(${hsl.h}, ${Math.max(hsl.s - 25, 0)}%, 15%)`,
+                        codeBg: `hsl(${hsl.h}, ${Math.max(hsl.s - 30, 0)}%, 18%)`
+                    };
+                } else {
+                    return {
+                        primary: `hsl(${hsl.h}, ${hsl.s}%, ${Math.max(hsl.l - 20, 25)}%)`,
+                        secondary: `hsl(${hsl.h}, ${Math.max(hsl.s - 10, 0)}%, ${Math.max(hsl.l - 10, 35)}%)`,
+                        background: `hsl(${hsl.h}, ${Math.max(hsl.s - 40, 0)}%, 98%)`,
+                        cardBg: `hsl(${hsl.h}, ${Math.max(hsl.s - 35, 0)}%, 100%)`,
+                        secondaryBg: `hsl(${hsl.h}, ${Math.max(hsl.s - 30, 0)}%, 95%)`,
+                        textPrimary: `hsl(${hsl.h}, 10%, 10%)`,
+                        textSecondary: `hsl(${hsl.h}, 10%, 40%)`,
+                        borderColor: `hsl(${hsl.h}, ${Math.max(hsl.s - 30, 0)}%, 85%)`,
+                        inputBg: `hsl(${hsl.h}, ${Math.max(hsl.s - 35, 0)}%, 98%)`,
+                        codeBg: `hsl(${hsl.h}, ${Math.max(hsl.s - 35, 0)}%, 95%)`
+                    };
+                }
+            }
+
+            hexToRgb(hex) {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : null;
+            }
+
+            rgbToHsl(r, g, b) {
+                r /= 255;
+                g /= 255;
+                b /= 255;
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                let h, s, l = (max + min) / 2;
+
+                if (max === min) {
+                    h = s = 0;
+                } else {
+                    const d = max - min;
+                    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                    switch (max) {
+                        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                        case g: h = (b - r) / d + 2; break;
+                        case b: h = (r - g) / d + 4; break;
+                    }
+                    h /= 6;
+                }
+
+                return {
+                    h: Math.round(h * 360),
+                    s: Math.round(s * 100),
+                    l: Math.round(l * 100)
+                };
+            }
+
+            applyColorScheme() {
+                const scheme = this.generateColorScheme(this.params.color);
+                const rgb = this.hexToRgb(this.params.color);
+                
+                const root = document.documentElement;
+                root.style.setProperty('--primary-color', scheme.primary);
+                root.style.setProperty('--primary-rgb', `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+                root.style.setProperty('--secondary-color', scheme.secondary);
+                root.style.setProperty('--background-color', scheme.background);
+                root.style.setProperty('--card-bg', scheme.cardBg);
+                root.style.setProperty('--secondary-bg', scheme.secondaryBg);
+                root.style.setProperty('--text-primary', scheme.textPrimary);
+                root.style.setProperty('--text-secondary', scheme.textSecondary);
+                root.style.setProperty('--border-color', scheme.borderColor);
+                root.style.setProperty('--input-bg', scheme.inputBg);
+                root.style.setProperty('--code-bg', scheme.codeBg);
+
+                document.body.style.background = scheme.background;
+                document.getElementById('overlay').style.background = scheme.background;
+            }
+
+            async generateProfile() {
+                this.applyColorScheme();
+
+                const userInfo = await this.fetchUserInfo();
+                const readmeContent = await this.fetchReadme();
+                
+                await this.setupBackground(readmeContent);
+                this.renderProfile(userInfo, readmeContent);
+            }
+
+            async fetchUserInfo() {
+                try {
+                    const response = await fetch(`https://api.github.com/users/${this.params.user}`);
+                    if (!response.ok) {
+                        throw new Error(`User "${this.params.user}" not found`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    throw new Error(`Failed to fetch user info: ${error.message}`);
+                }
+            }
+
+            async fetchReadme() {
+                try {
+                    const response = await fetch(`https://raw.githubusercontent.com/${this.params.user}/${this.params.user}/main/README.md`);
+                    if (!response.ok) {
+                        throw new Error(`README.md not found for user "${this.params.user}"`);
+                    }
+                    return await response.text();
+                } catch (error) {
+                    throw new Error(`404 - README.md not found for user "${this.params.user}"`);
+                }
+            }
+
+            async setupBackground(readmeContent) {
+                const backgroundEl = document.getElementById('background');
+                const overlayEl = document.getElementById('overlay');
+
+                if (this.params.background === 'none') {
+                    return;
+                }
+
+                let backgroundUrl = '';
+
+                if (this.params.background === 'auto') {
+                    const imageMatch = readmeContent.match(/!\[.*?\]\((.*?)\)/);
+                    if (imageMatch) {
+                        backgroundUrl = imageMatch[1];
+                        // Store the background URL to avoid conflicts
+                        this.backgroundImageUrl = backgroundUrl;
+                    }
+                } else if (this.params.background.startsWith('http')) {
+                    backgroundUrl = this.params.background;
+                    this.backgroundImageUrl = backgroundUrl;
+                }
+
+                if (backgroundUrl) {
+                    backgroundEl.style.backgroundImage = `url(${backgroundUrl})`;
+                    if (this.params.blur) {
+                        backgroundEl.classList.add('blur');
+                        overlayEl.style.background = 'rgba(0, 0, 0, 0.3)';
+                    }
+                }
+            }
+
+            renderProfile(userInfo, readmeContent) {
+                const profileCard = document.createElement('div');
+                profileCard.className = `profile-card ${this.params.theme}`;
+                
+                if (this.params.blur && this.params.theme === 'glass') {
+                    profileCard.style.backdropFilter = 'blur(20px)';
+                }
+
+                const htmlContent = this.markdownToHtml(readmeContent);
+
+                profileCard.innerHTML = `
+                    <div class="profile-header">
+                        <img src="${userInfo.avatar_url}" alt="${userInfo.name || userInfo.login}" class="avatar">
+                        <h1 class="username">${userInfo.name || userInfo.login}</h1>
+                        ${userInfo.bio ? `<p class="bio">${userInfo.bio}</p>` : ''}
+                        <a href="${userInfo.html_url}" class="github-link" target="_blank">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                            View on GitHub
+                        </a>
+                    </div>
+                    <div class="readme-content">
+                        ${htmlContent}
+                    </div>
+                `;
+
+                document.getElementById('content').innerHTML = '';
+                document.getElementById('content').appendChild(profileCard);
+            }
+
+            markdownToHtml(markdown) {
+                let html = markdown;
+                
+                // Headers
+                html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+                html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+                html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+                
+                // Bold
+                html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                
+                // Italic
+                html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                
+                // Links
+                html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+                
+                // Images - handle properly and check if it's the background image
+                html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
+                    // If this image is being used as background and background mode is auto, 
+                    // we can choose to either hide it or show it
+                    if (this.params.background === 'auto' && this.backgroundImageUrl === src) {
+                        // Option 1: Hide the background image from README content
+                        // return '';
+                        
+                        // Option 2: Show the image but with different styling
+                        return `<div class="background-image-placeholder" style="text-align: center; padding: 20px; border: 2px dashed var(--border-color); border-radius: 10px; margin: 20px 0; color: var(--text-secondary);">
+                            <img src="${src}" alt="${alt}" style="max-width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px;">
+                            <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.7;">This image is also used as the background</p>
+                        </div>`;
+                    }
+                    
+                    // For all other images, display normally
+                    return `<img src="${src}" alt="${alt}" style="max-width: 100%; height: auto; border-radius: 10px; margin: 10px 0;">`;
+                });
+                
+                // Code blocks
+                html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+                
+                // Inline code
+                html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+                
+                // Line breaks
+                html = html.replace(/\n/g, '<br>');
+                
+                return html;
+            }
+
+            showForm() {
+                this.applyColorScheme();
+                
+                const form = document.createElement('div');
+                form.className = 'form-container';
+                form.innerHTML = `
+                    <h1 style="text-align: center; margin-bottom: 30px; color: var(--text-primary);">GitHub Profile Generator</h1>
+                    <form id="profileForm">
+                        <div class="form-group">
+                            <label for="user">GitHub Username *</label>
+                            <input type="text" id="user" name="user" required placeholder="Enter GitHub username">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="mode">Color Mode</label>
+                            <select id="mode" name="mode">
+                                <option value="auto">Auto (System preference)</option>
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="color">Primary Color (HEX)</label>
+                            <input type="text" id="color" name="color" placeholder="3b82f6" pattern="^#?[0-9a-fA-F]{6}$">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="background">Background</label>
+                            <select id="background" name="background">
+                                <option value="none">None (Use color scheme)</option>
+                                <option value="auto">Auto (First image from README)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="backgroundUrl">Custom Background URL</label>
+                            <input type="url" id="backgroundUrl" name="backgroundUrl" placeholder="https://example.com/image.jpg">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="blur">Apply Blur Effect</label>
+                            <select id="blur" name="blur">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="theme">Theme</label>
+                            <select id="theme" name="theme">
+                                <option value="glass">Glass (Glassmorphism)</option>
+                                <option value="minimal">Minimal</option>
+                                <option value="neon">Neon</option>
+                                <option value="modern">Modern</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Generate Profile</button>
+                            <button type="button" class="btn btn-secondary" onclick="generateBase64Url()">Generate Base64 URL</button>
+                        </div>
+                    </form>
+                    
+                    <div id="generatedUrl" style="margin-top: 20px; padding: 15px; background: var(--code-bg); border-radius: 10px; display: none;">
+                        <p style="margin-bottom: 10px; color: var(--text-primary); font-weight: 600;">Generated URL:</p>
+                        <textarea id="urlOutput" readonly style="width: 100%; height: 100px; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--input-bg); color: var(--text-primary); font-family: monospace; font-size: 12px; resize: vertical;"></textarea>
+                        <button type="button" class="btn btn-secondary" onclick="copyToClipboard()" style="margin-top: 10px;">Copy URL</button>
+                    </div>
+                `;
+
+                document.getElementById('content').innerHTML = '';
+                document.getElementById('content').appendChild(form);
+
+                document.getElementById('profileForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleFormSubmit();
+                });
+
+                // Add global functions for buttons
+                window.generateBase64Url = () => this.generateBase64Url();
+                window.copyToClipboard = () => this.copyToClipboard();
+            }
+
+            handleFormSubmit() {
+                const formData = new FormData(document.getElementById('profileForm'));
+                const params = new URLSearchParams();
+                
+                params.set('user', formData.get('user'));
+                params.set('mode', formData.get('mode') || 'auto');
+                params.set('color', formData.get('color') || '3b82f6');
+                
+                const backgroundUrl = formData.get('backgroundUrl');
+                if (backgroundUrl) {
+                    params.set('background', backgroundUrl);
+                } else {
+                    params.set('background', formData.get('background') || 'none');
+                }
+                
+                params.set('blur', formData.get('blur') || 'true');
+                params.set('theme', formData.get('theme') || 'glass');
+                
+                window.location.search = params.toString();
+            }
+
+            generateBase64Url() {
+                const formData = new FormData(document.getElementById('profileForm'));
+                const params = new URLSearchParams();
+                
+                params.set('user', formData.get('user'));
+                params.set('mode', formData.get('mode') || 'auto');
+                params.set('color', formData.get('color') || '3b82f6');
+                
+                const backgroundUrl = formData.get('backgroundUrl');
+                if (backgroundUrl) {
+                    params.set('background', backgroundUrl);
+                } else {
+                    params.set('background', formData.get('background') || 'none');
+                }
+                
+                params.set('blur', formData.get('blur') || 'true');
+                params.set('theme', formData.get('theme') || 'glass');
+                
+                const base64Params = btoa(params.toString());
+                const base64Url = `${window.location.origin}${window.location.pathname}?base64=${base64Params}`;
+                
+                document.getElementById('urlOutput').value = base64Url;
+                document.getElementById('generatedUrl').style.display = 'block';
+            }
+
+            copyToClipboard() {
+                const urlOutput = document.getElementById('urlOutput');
+                urlOutput.select();
+                document.execCommand('copy');
+                
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            }
+
+            showError(message) {
+                this.applyColorScheme();
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error';
+                errorDiv.innerHTML = `
+                    <h1>404</h1>
+                    <p>${message}</p>
+                    <a href="${window.location.pathname}" class="btn btn-primary">Go Back</a>
+                `;
+
+                document.getElementById('content').innerHTML = '';
+                document.getElementById('content').appendChild(errorDiv);
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new GitHubProfileGenerator();
+        });
+    </script>
+</body>
+</html>
