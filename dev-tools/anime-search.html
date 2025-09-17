@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Search - Tìm phim/anime chính hãng</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: -1;
+        }
+
+        .header {
+            padding: 20px;
+            text-align: right;
+        }
+
+        .settings-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 120px 20px 20px;
+            text-align: center;
+        }
+
+        .logo {
+            color: white;
+            font-size: 3.5rem;
+            font-weight: 300;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-input:focus {
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .search-btn {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-engines {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .engine-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .engine-btn:hover, .engine-btn.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            transform: translateY(-1px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 240, 240, 0.95) 100%);
+            margin: 2% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .close {
+            color: #666;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .settings-section {
+            margin-bottom: 30px;
+        }
+
+        .settings-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .website-list {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .website-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .website-item input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .website-item input[type="text"] {
+            flex: 1;
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .background-upload {
+            margin-top: 15px;
+        }
+
+        .file-input {
+            margin-top: 10px;
+            padding: 10px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .file-input input {
+            display: none;
+        }
+
+        a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .modal-content {
+                margin: 5% auto;
+                padding: 20px;
+                width: 95%;
+            }
+            
+            .website-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .website-item input[type="text"] {
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-overlay"></div>
+    
+    <div class="header">
+        <button class="settings-btn" onclick="openSettings()">Settings</button>
+    </div>
+
+    <div class="main-container">
+        <h1 class="logo">Anime Search</h1>
+        <p class="subtitle">Tìm phim & anime từ các nguồn chính hãng, miễn phí</p>
+        
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="Nhập tên phim hoặc anime..." />
+            <button class="search-btn" onclick="performSearch()">Search</button>
+        </div>
+
+        <div class="search-engines">
+            <button class="engine-btn active" data-engine="google">Google</button>
+            <button class="engine-btn" data-engine="bing">Bing</button>
+            <button class="engine-btn" data-engine="duckduckgo">DuckDuckGo</button>
+            <button class="engine-btn" data-engine="yahoo">Yahoo</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSettings()">&times;</span>
+            <h2>Cài đặt</h2>
+            
+            <div class="settings-section">
+                <h3>Websites tìm kiếm</h3>
+                <div style="margin-bottom: 15px;">
+                    <button class="btn btn-primary" onclick="resetWebsites()">Reset về mặc định</button>
+                    <button class="btn btn-success" onclick="addWebsite()">Thêm website</button>
+                </div>
+                <div id="websiteList" class="website-list"></div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Background</h3>
+                <button class="btn btn-primary" onclick="resetBackground()">Reset về mặc định</button>
+                <div class="background-upload">
+                    <div class="file-input" onclick="document.getElementById('backgroundFile').click()">
+                        Chọn ảnh nền mới
+                        <input type="file" id="backgroundFile" accept="image/*" onchange="uploadBackground(event)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Giới thiệu</h3>
+                <p>Anime Search giúp bạn tìm kiếm phim và anime từ các nguồn chính hãng, an toàn và miễn phí. Công cụ này khuyến khích việc sử dụng các dịch vụ có bản quyền, tránh các website lậu có thể chứa malware.</p>
+                <p><strong>Repo dự án:</strong> <a href="https://github.com/nguyenhhoa03/dev-tools" target="_blank">https://github.com/nguyenhhoa03/dev-tools</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default configuration
+        const defaultWebsites = [
+            { name: "iQ.com", url: "iq.com", enabled: true },
+            { name: "VieON", url: "vieon.vn", enabled: true },
+            { name: "TV360", url: "tv360.vn", enabled: true },
+            { name: "Crunchyroll", url: "crunchyroll.com", enabled: true },
+            { name: "FPT Play", url: "fptplay.vn", enabled: true },
+            { name: "DANET", url: "danet.vn", enabled: true }
+        ];
+
+        const defaultBackground = "https://images5.alphacoders.com/112/thumb-1920-1123013.jpg";
+        let currentEngine = 'google';
+        let websites = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            setupEventListeners();
+            applyBackground();
+        });
+
+        function loadSettings() {
+            // Load websites
+            const savedWebsites = localStorage.getItem('animeSearchWebsites');
+            websites = savedWebsites ? JSON.parse(savedWebsites) : [...defaultWebsites];
+            
+            // Load background
+            const savedBg = localStorage.getItem('animeSearchBackground');
+            if (savedBg) {
+                document.body.style.backgroundImage = `url(${savedBg})`;
+            } else {
+                document.body.style.backgroundImage = `url(${defaultBackground})`;
+            }
+        }
+
+        function saveSettings() {
+            localStorage.setItem('animeSearchWebsites', JSON.stringify(websites));
+        }
+
+        function setupEventListeners() {
+            // Search input enter key
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            // Search engine buttons
+            document.querySelectorAll('.engine-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.engine-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentEngine = this.dataset.engine;
+                });
+            });
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                alert('Vui lòng nhập tên phim hoặc anime!');
+                return;
+            }
+
+            const enabledWebsites = websites.filter(w => w.enabled);
+            if (enabledWebsites.length === 0) {
+                alert('Vui lòng bật ít nhất một website trong Settings!');
+                return;
+            }
+
+            const siteQuery = enabledWebsites.map(w => `site:${w.url}`).join(' OR ');
+            const fullQuery = encodeURIComponent(`${query} ${siteQuery}`);
+            
+            let searchUrl;
+            switch (currentEngine) {
+                case 'bing':
+                    searchUrl = `https://www.bing.com/search?q=${fullQuery}`;
+                    break;
+                case 'duckduckgo':
+                    searchUrl = `https://duckduckgo.com/?q=${fullQuery}`;
+                    break;
+                case 'yahoo':
+                    searchUrl = `https://search.yahoo.com/search?p=${fullQuery}`;
+                    break;
+                default:
+                    searchUrl = `https://www.google.com/search?q=${fullQuery}`;
+            }
+            
+            window.open(searchUrl, '_blank');
+        }
+
+        function openSettings() {
+            renderWebsiteList();
+            document.getElementById('settingsModal').style.display = 'block';
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        function renderWebsiteList() {
+            const container = document.getElementById('websiteList');
+            container.innerHTML = '';
+            
+            websites.forEach((website, index) => {
+                const item = document.createElement('div');
+                item.className = 'website-item';
+                item.innerHTML = `
+                    <input type="checkbox" ${website.enabled ? 'checked' : ''} 
+                           onchange="toggleWebsite(${index})">
+                    <input type="text" value="${website.name}" 
+                           onchange="updateWebsiteName(${index}, this.value)" placeholder="Tên website">
+                    <input type="text" value="${website.url}" 
+                           onchange="updateWebsiteUrl(${index}, this.value)" placeholder="URL (vd: iq.com)">
+                    <button class="btn btn-danger" onclick="removeWebsite(${index})">Xóa</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function toggleWebsite(index) {
+            websites[index].enabled = !websites[index].enabled;
+            saveSettings();
+        }
+
+        function updateWebsiteName(index, name) {
+            websites[index].name = name;
+            saveSettings();
+        }
+
+        function updateWebsiteUrl(index, url) {
+            websites[index].url = url.replace(/^https?:\/\//, '');
+            saveSettings();
+        }
+
+        function removeWebsite(index) {
+            if (confirm('Bạn có chắc muốn xóa website này?')) {
+                websites.splice(index, 1);
+                saveSettings();
+                renderWebsiteList();
+            }
+        }
+
+        function addWebsite() {
+            const name = prompt('Tên website:');
+            if (!name) return;
+            
+            const url = prompt('URL website (vd: netflix.com):');
+            if (!url) return;
+            
+            websites.push({
+                name: name,
+                url: url.replace(/^https?:\/\//, ''),
+                enabled: true
+            });
+            saveSettings();
+            renderWebsiteList();
+        }
+
+        function resetWebsites() {
+            if (confirm('Bạn có chắc muốn reset danh sách websites về mặc định?')) {
+                websites = [...defaultWebsites];
+                saveSettings();
+                renderWebsiteList();
+            }
+        }
+
+        function resetBackground() {
+            document.body.style.backgroundImage = `url(${defaultBackground})`;
+            localStorage.removeItem('animeSearchBackground');
+        }
+
+        function uploadBackground(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith('image/')) {
+                alert('Vui lòng chọn file ảnh!');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageUrl = e.target.result;
+                document.body.style.backgroundImage = `url(${imageUrl})`;
+                localStorage.setItem('animeSearchBackground', imageUrl);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function applyBackground() {
+            const savedBg = localStorage.getItem('animeSearchBackground');
+            if (savedBg) {
+                document.body.style.backgroundImage = `url(${savedBg})`;
+            } else {
+                document.body.style.backgroundImage = `url(${defaultBackground})`;
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('settingsModal');
+            if (event.target === modal) {
+                closeSettings();
+            }
+        }
+    </script>
+</body>
+</html>
